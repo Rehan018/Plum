@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from .eval_runner import run_all_cases, run_case
@@ -16,6 +20,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+ROOT = Path(__file__).resolve().parents[2]
+FRONTEND_DIST = ROOT / "frontend" / "dist"
+ASSETS_DIR = FRONTEND_DIST / "assets"
+
+if ASSETS_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 
 
 @app.get("/api/policy")
@@ -56,3 +67,20 @@ async def eval_one(case_id: str):
         if test_case["case_id"] == case_id:
             return await run_case(test_case)
     return {"error": f"Unknown case_id {case_id}"}
+
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    requested = FRONTEND_DIST / full_path
+    if full_path and requested.is_file():
+        return FileResponse(requested)
+
+    index = FRONTEND_DIST / "index.html"
+    if index.exists():
+        return FileResponse(index)
+
+    return {
+        "service": "Plum Claims AI Pipeline",
+        "status": "frontend_dist_not_found",
+        "docs": "/docs",
+    }

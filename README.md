@@ -59,6 +59,32 @@ Docs:
 - `docs/eval_report.md`
 - `docs/setup.md`
 
+
+## Render Deployment
+
+This repo includes a single-service Render blueprint in `render.yaml`. Render builds the React app, serves it from FastAPI, and exposes both the UI and API from one web service.
+
+Run the deploy helper:
+
+```bash
+./scripts/deploy_render.sh
+```
+
+The script runs backend tests, builds the frontend, commits pending changes, pushes to GitHub, and triggers a Render deploy hook if `RENDER_DEPLOY_HOOK_URL` is set.
+
+First-time Render setup:
+
+1. Open Render Dashboard
+2. Create a new Blueprint
+3. Connect `github.com/Rehan018/Plum`
+4. Render will read `render.yaml`
+
+After first setup, copy the Render Deploy Hook URL and run:
+
+```bash
+RENDER_DEPLOY_HOOK_URL="https://api.render.com/deploy/srv-..." ./scripts/deploy_render.sh
+```
+
 ## Package Contents
 
 ```
